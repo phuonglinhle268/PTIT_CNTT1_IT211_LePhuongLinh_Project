@@ -19,10 +19,8 @@ public class CourseResponse {
     private String description;
     private Boolean isActive;
     private LocalDateTime createdAt;
-
     private Long lecturerId;
     private String lecturerName;
-
     private Integer enrolledCount;
 
     public static CourseResponse from(Course course) {
@@ -36,7 +34,7 @@ public class CourseResponse {
                 .createdAt(course.getCreatedAt())
                 .lecturerId(course.getLecturer() != null ? course.getLecturer().getId() : null)
                 .lecturerName(course.getLecturer() != null ? course.getLecturer().getFullName() : null)
-                .enrolledCount(course.getEnrolledStudents() != null ? course.getEnrolledStudents().size() : 0)
+                .enrolledCount(null)
                 .build();
     }
 }

@@ -14,17 +14,16 @@ import java.util.Optional;
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
     Optional<Course> findByCourseCode(String courseCode);
-
     boolean existsByCourseCode(String courseCode);
-
     Page<Course> findByIsActiveTrue(Pageable pageable);
-
     Page<Course> findByCourseNameContainingIgnoreCaseAndIsActiveTrue(String courseName, Pageable pageable);
 
-    @Query("SELECT c FROM Course c JOIN c.enrolledStudents s WHERE s.id = :studentId")
+    @Query("""
+    SELECT c FROM Course c JOIN c.enrolledStudents s WHERE s.id = :studentId AND c.isActive = true
+""")
     Page<Course> findByEnrolledStudentId(@Param("studentId") Long studentId, Pageable pageable);
 
-
-    @Query("SELECT c FROM Course c WHERE c.lecturer.id = :lecturerId")
-    Page<Course> findByLecturer_Id(@Param("lecturerId") Long lecturerId, Pageable pageable);
+    @Query(value = "SELECT c FROM Course c WHERE c.lecturer.id = :lecturerId AND c.isActive = true",
+            countQuery = "SELECT COUNT(c) FROM Course c WHERE c.lecturer.id = :lecturerId AND c.isActive = true")
+    Page<Course> findByLecturerId(@Param("lecturerId") Long lecturerId, Pageable pageable);
 }
