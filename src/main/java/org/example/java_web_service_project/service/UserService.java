@@ -2,9 +2,7 @@ package org.example.java_web_service_project.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.java_web_service_project.dto.request.CreateUserRequest;
-import org.example.java_web_service_project.dto.request.RegisterRequest;
-import org.example.java_web_service_project.dto.request.UpdateUserRequest;
+import org.example.java_web_service_project.dto.request.*;
 import org.example.java_web_service_project.dto.response.PageResponse;
 import org.example.java_web_service_project.dto.response.UserResponse;
 import org.example.java_web_service_project.entity.User;
@@ -109,7 +107,7 @@ public class UserService {
         if (request.getIsActive() != null) user.setIsActive(request.getIsActive());
 
         User saved = userRepository.save(user);
-        log.info("Admin updated user: {}", saved.getUsername());
+        log.info("Admin update user: {}", saved.getUsername());
         return UserResponse.from(saved);
     }
 
@@ -128,6 +126,31 @@ public class UserService {
         log.info("Admin xóa user id: {}", id);
     }
 
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = findUserOrThrow(userId);
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new AppException("Mật khẩu hiện tại không đúng", HttpStatus.BAD_REQUEST);
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        log.info("User {} thay đổi password", user.getUsername());
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException("Không tìm thấy tài khoản với email này", HttpStatus.NOT_FOUND));
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        log.info("User {} đặt lại mật khẩu qua chức năng đổi mật khẩu", user.getEmail());
+    }
+
+
+    //helper
     private User findUserOrThrow(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new AppException("Không tìm thấy user với id: " + id, HttpStatus.NOT_FOUND));

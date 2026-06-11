@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollment, Long> {
-    boolean existsByCourse_IdAndStudent_Id(Long courseId, Long studentId);
-
-    void deleteByCourse_IdAndStudent_Id(Long courseId, Long studentId);
+//    boolean existsByCourse_IdAndStudent_Id(Long courseId, Long studentId);
+//
+//    void deleteByCourse_IdAndStudent_Id(Long courseId, Long studentId);
 }

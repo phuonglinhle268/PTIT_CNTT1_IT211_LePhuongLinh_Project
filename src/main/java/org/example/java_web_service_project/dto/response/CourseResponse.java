@@ -34,7 +34,7 @@ public class CourseResponse {
                 .createdAt(course.getCreatedAt())
                 .lecturerId(course.getLecturer() != null ? course.getLecturer().getId() : null)
                 .lecturerName(course.getLecturer() != null ? course.getLecturer().getFullName() : null)
-                .enrolledCount(null)
+                .enrolledCount(0)
                 .build();
     }
 }

@@ -12,16 +12,15 @@ import java.util.Optional;
 
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
-
     Optional<Submission> findByStudent_IdAndCourse_Id(Long studentId, Long courseId);
 
     boolean existsByStudent_IdAndCourse_Id(Long studentId, Long courseId);
 
     Page<Submission> findByCourse_Id(Long courseId, Pageable pageable);
 
-    Page<Submission> findByStudent_Id(Long studentId, Pageable pageable);
+    Page<Submission> findByStudentId(Long studentId, Pageable pageable);
 
     Page<Submission> findByCourse_IdAndStatus(Long courseId, StatusEnum status, Pageable pageable);
 
-    Page<Submission> findByLecturer_Id(Long lecturerId, Pageable pageable);
+    Page<Submission> findByCourse_Lecturer_Id(Long lecturerId, Pageable pageable);
 }
