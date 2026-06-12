@@ -26,7 +26,7 @@ public class LectureMaterial {
     @Column(nullable = false, length = 1000)
     private String fileUrl;
 
-    @Column(length = 50)
+    @Column(length = 255)
     private String fileType;
 
     private Long fileSize;
