@@ -56,20 +56,62 @@ public class AuthController {
     }
 
 
-    //Đổi mật khẩu (Authenticated)
-    @PostMapping("/change-password")
-    public ResponseEntity<ApiResponse<Void>> changePassword(
-            @Valid @RequestBody ChangePasswordRequest request,
+//    //Đổi mật khẩu (Authenticated)
+//    @PostMapping("/change-password")
+//    public ResponseEntity<ApiResponse<Void>> changePassword(
+//            @Valid @RequestBody ChangePasswordRequest request,
+//            @AuthenticationPrincipal User currentUser) {
+//        userService.changePassword(currentUser.getId(), request);
+//        return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công"));
+//    }
+//
+//    //Quên mật khẩu (Public)
+//    @PostMapping("/forgot-password")
+//    public ResponseEntity<ApiResponse<Void>> forgotPassword(
+//            @Valid @RequestBody ForgotPasswordRequest request) {
+//        userService.forgotPassword(request);
+//        return ResponseEntity.ok(ApiResponse.success("Đặt lại mật khẩu thành công"));
+//    }
+
+    //Đổi mật khẩu — Gửi OTP (Authenticated)
+    @PostMapping("/change-password/send-otp")
+    public ResponseEntity<ApiResponse<Void>> sendChangePasswordOtp(
             @AuthenticationPrincipal User currentUser) {
-        userService.changePassword(currentUser.getId(), request);
+        userService.sendChangePasswordOtp(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success(
+                "Mã OTP đã được gửi đến email " + maskEmail(currentUser.getEmail())));
+    }
+
+    // Đổi mật khẩu —Xác minh OTP + mật khẩu mới (Authenticated)
+    @PostMapping("/change-password/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyChangePassword(
+            @Valid @RequestBody VerifyChangePasswordRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        userService.verifyChangePassword(currentUser.getId(), request);
         return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công"));
     }
 
-    //Quên mật khẩu (Public)
-    @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Void>> forgotPassword(
-            @Valid @RequestBody ForgotPasswordRequest request) {
-        userService.forgotPassword(request);
+    //Quên mật khẩu — Gửi OTP (Public)
+    @PostMapping("/forgot-password/send-otp")
+    public ResponseEntity<ApiResponse<Void>> sendForgotPasswordOtp(
+            @Valid @RequestBody SendOtpRequest request) {
+        userService.sendForgotPasswordOtp(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success(
+                "Mã OTP đã được gửi đến email " + maskEmail(request.getEmail())));
+    }
+
+    //Quên mật khẩu - Xác minh OTP + mật khẩu mới (Public)
+    @PostMapping("/forgot-password/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyForgotPassword(
+            @Valid @RequestBody VerifyForgotPasswordRequest request) {
+        userService.verifyForgotPassword(request);
         return ResponseEntity.ok(ApiResponse.success("Đặt lại mật khẩu thành công"));
+    }
+
+    // Che bớt email khi hiển thị
+    private String maskEmail(String email) {
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 1) return email;
+        return email.charAt(0) + "**" + email.substring(atIndex);
     }
 }

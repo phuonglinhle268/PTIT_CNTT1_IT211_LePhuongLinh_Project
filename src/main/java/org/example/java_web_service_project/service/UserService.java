@@ -29,6 +29,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
 
     @Transactional
     public UserResponse registerStudent(RegisterRequest request) {
@@ -126,29 +127,80 @@ public class UserService {
         log.info("Admin xóa user id: {}", id);
     }
 
+//    @Transactional
+//    public void changePassword(Long userId, ChangePasswordRequest request) {
+//        User user = findUserOrThrow(userId);
+//
+//        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+//            throw new AppException("Mật khẩu hiện tại không đúng", HttpStatus.BAD_REQUEST);
+//        }
+//
+//        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+//        userRepository.save(user);
+//        log.info("User {} thay đổi password", user.getUsername());
+//    }
+//
+//    @Transactional
+//    public void forgotPassword(ForgotPasswordRequest request) {
+//        User user = userRepository.findByEmail(request.getEmail())
+//                .orElseThrow(() -> new AppException("Không tìm thấy tài khoản với email này", HttpStatus.NOT_FOUND));
+//
+//        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+//        userRepository.save(user);
+//        log.info("User {} đặt lại mật khẩu qua chức năng đổi mật khẩu", user.getEmail());
+//    }
+
+    //Đổi mật khẩu — Gửi OTP về email tài khoản
     @Transactional
-    public void changePassword(Long userId, ChangePasswordRequest request) {
+    public void sendChangePasswordOtp(Long userId) {
+        User user = findUserOrThrow(userId);
+        otpService.sendOtp(
+                user.getEmail(),
+                OtpService.TYPE_CHANGE,
+                "[Course Management] Mã xác minh đổi mật khẩu"
+        );
+        log.info("OTP đổi mật khẩu gửi tới {}", user.getEmail());
+    }
+
+    //Xác minh OTP + đặt mật khẩu mới
+    @Transactional
+    public void verifyChangePassword(Long userId, VerifyChangePasswordRequest request) {
         User user = findUserOrThrow(userId);
 
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
-            throw new AppException("Mật khẩu hiện tại không đúng", HttpStatus.BAD_REQUEST);
-        }
+        otpService.verifyOtp(user.getEmail(), request.getOtp(), OtpService.TYPE_CHANGE);
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        log.info("User {} thay đổi password", user.getUsername());
+        log.info("User {} đổi password thành công", user.getUsername());
     }
 
+    //Quên mật khẩu — Gửi OTP về email
     @Transactional
-    public void forgotPassword(ForgotPasswordRequest request) {
+    public void sendForgotPasswordOtp(String email) {
+        userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(
+                        "Không tìm thấy tài khoản với email này", HttpStatus.NOT_FOUND));
+
+        otpService.sendOtp(
+                email,
+                OtpService.TYPE_FORGOT,
+                "[Course Management] Mã xác minh đặt lại mật khẩu"
+        );
+        log.info("OTP quên mật khẩu gửi tới {}", email);
+    }
+
+    //Quên mật khẩu — Xác minh OTP + đặt mật khẩu mới
+    @Transactional
+    public void verifyForgotPassword(VerifyForgotPasswordRequest request) {
+        otpService.verifyOtp(request.getEmail(), request.getOtp(), OtpService.TYPE_FORGOT);
+
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new AppException("Không tìm thấy tài khoản với email này", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException("Không tìm thấy tài khoản", HttpStatus.NOT_FOUND));
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        log.info("User {} đặt lại mật khẩu qua chức năng đổi mật khẩu", user.getEmail());
+        log.info("User {} đặt lại mật khẩu qua chức năng quên mật khẩu", user.getEmail());
     }
-
 
     //helper
     private User findUserOrThrow(Long id) {
