@@ -49,6 +49,13 @@ dependencies {
     implementation 'com.cloudinary:cloudinary-http44:1.39.0'
 
     implementation 'com.cloudinary:cloudinary-http5:2.2.0'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {

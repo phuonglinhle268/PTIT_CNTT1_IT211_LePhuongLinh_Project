@@ -15,7 +15,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Component
 @Slf4j
 public class LoggingAspect {
-    //toàn bộ Service — đo thời gian thực thi
+    //Service — đo thời gian thực thi
     //nếu > 1 giây, ghi ERROR nếu ném exception
     @Around("execution(* org.example.java_web_service_project.service.*.*(..))")
     public Object logServiceTime(ProceedingJoinPoint pjp) throws Throwable {
@@ -41,7 +41,7 @@ public class LoggingAspect {
         }
     }
 
-    //toàn bộ Controller — log HTTP method + URI + thời gian
+    //Controller — log HTTP method + URI + thời gian
     @Around("execution(* org.example.java_web_service_project.controller.*.*(..))")
     public Object logControllerTime(ProceedingJoinPoint pjp) throws Throwable {
         String cls    = pjp.getSignature().getDeclaringType().getSimpleName();
@@ -76,7 +76,7 @@ public class LoggingAspect {
         }
     }
 
-    //log sau khi chấm điểm thành công
+    //sau khi chấm điểm thành công
     @AfterReturning(
             pointcut = "execution(* org.example.java_web_service_project.service.SubmissionService.grade(..))",
             returning = "result"
@@ -96,7 +96,7 @@ public class LoggingAspect {
         log.error("[GRADE][ERROR] {}", ex.getMessage());
     }
 
-    // Log sau khi nộp bài (FR-07)
+    //sau khi nộp bài
     @AfterReturning(
             pointcut = "execution(* org.example.java_web_service_project.service.SubmissionService.submit(..))",
             returning = "result"
@@ -108,7 +108,7 @@ public class LoggingAspect {
         }
     }
 
-    // Log sau khi upload báo cáo
+    //sau khi upload báo cáo
     @AfterReturning(
             pointcut = "execution(* org.example.java_web_service_project.service.SubmissionService.uploadReport(..))",
             returning = "result"
