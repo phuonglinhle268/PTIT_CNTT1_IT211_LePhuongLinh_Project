@@ -69,7 +69,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public PageResponse<UserResponse> getAllUsers(String keyword, RoleEnum role, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
 
         Page<User> userPage;
         if (keyword != null && !keyword.isBlank()) {

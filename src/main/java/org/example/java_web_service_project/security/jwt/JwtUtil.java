@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -28,20 +29,25 @@ public class JwtUtil {
     }
 
     public String generateAccessToken(String username, String role, Long userId) {
-        return buildToken(username, role, userId, accessTokenExpiration);
-    }
-
-    public String generateRefreshToken(String username, String role, Long userId) {
-        return buildToken(username, role, userId, refreshTokenExpiration);
-    }
-
-    private String buildToken(String username, String role, Long userId, long expiration) {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", role)
                 .claim("userId", userId)
+                .audience().add("access").and()
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateRefreshToken(String username, String role, Long userId) {
+        return Jwts.builder()
+                .subject(username)
+                .claim("role", role)
+                .claim("userId", userId)
+                .audience().add("refresh").and()
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -62,12 +68,14 @@ public class JwtUtil {
         return extractAllClaims(token).get("userId", Long.class);
     }
 
-    public Date extractExpiration(String token) {
-        return extractAllClaims(token).getExpiration();
+    public boolean isAccessToken(String token) {
+        Set<String> audience = extractAllClaims(token).getAudience();
+        return audience != null && audience.contains("access");
     }
 
-    public boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    public boolean isRefreshToken(String token) {
+        Set<String> audience = extractAllClaims(token).getAudience();
+        return audience != null && audience.contains("refresh");
     }
 
     public boolean validateToken(String token) {

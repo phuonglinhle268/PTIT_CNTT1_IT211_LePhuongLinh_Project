@@ -19,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -45,13 +44,13 @@ public class AuthService {
         String accessToken  = jwtUtil.generateAccessToken(user.getUsername(), user.getRole().name(), user.getId());
         String refreshToken = jwtUtil.generateRefreshToken(user.getUsername(), user.getRole().name(), user.getId());
 
-        log.info("User {} đăng nhập", user.getUsername());
+        log.info("User {} đăng nhập thành công", user.getUsername());
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
-                .expiresIn(900L)
+                .expiresIn(900L) // 15 phút
                 .user(UserResponse.from(user))
                 .build();
     }
@@ -63,6 +62,10 @@ public class AuthService {
 
         if (!jwtUtil.validateToken(refreshToken)) {
             throw new AppException("Refresh token không hợp lệ hoặc đã hết hạn", HttpStatus.UNAUTHORIZED);
+        }
+
+        if (!jwtUtil.isRefreshToken(refreshToken)) {
+            throw new AppException("Token này không phải là Refresh Token hợp lệ", HttpStatus.BAD_REQUEST);
         }
 
         if (tokenBlacklistRepository.existsByTokenString(refreshToken)) {
@@ -79,22 +82,22 @@ public class AuthService {
 
         String newAccessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole().name(), user.getId());
 
-        log.info("User {} refreshed token", user.getUsername());
+        log.info("User {} làm mới Access Token thành công", user.getUsername());
 
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(refreshToken)   // giữ nguyên refresh token cũ
+                .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(900L)
                 .user(UserResponse.from(user))
                 .build();
     }
 
-    // Đăng xuất — blacklist AccessToken hiện tại
+    // Đăng xuất — đưa AccessToken hiện tại vào danh sách đen
     @Transactional
     public void logout(String bearerToken) {
         if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
-            throw new AppException("Token không hợp lệ", HttpStatus.BAD_REQUEST);
+            throw new AppException("Định dạng token không hợp lệ", HttpStatus.BAD_REQUEST);
         }
 
         String token = bearerToken.substring(7);
@@ -103,6 +106,11 @@ public class AuthService {
             throw new AppException("Token đã hết hạn hoặc không hợp lệ", HttpStatus.UNAUTHORIZED);
         }
 
+        if (!jwtUtil.isAccessToken(token)) {
+            throw new AppException("Token không đúng loại để thực hiện đăng xuất", HttpStatus.BAD_REQUEST);
+        }
+
+        //Kiểm tra trùng lặp trong blacklist
         if (tokenBlacklistRepository.existsByTokenString(token)) {
             throw new AppException("Token đã được đăng xuất trước đó", HttpStatus.BAD_REQUEST);
         }
@@ -111,7 +119,7 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException("Không tìm thấy người dùng", HttpStatus.NOT_FOUND));
 
-        Date expiresAt = jwtUtil.extractExpiration(token);
+        Date expiresAt = jwtUtil.extractAllClaims(token).getExpiration();
 
         tokenBlacklistRepository.save(
                 TokenBlacklist.builder()
@@ -122,7 +130,6 @@ public class AuthService {
                                 .toLocalDateTime())
                         .build()
         );
-
-        log.info("User {} đăng xuất", username);
+        log.info("User {} đăng xuất thành công", username);
     }
 }

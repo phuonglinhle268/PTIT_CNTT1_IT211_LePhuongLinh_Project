@@ -55,7 +55,7 @@ public class CourseService {
     // admin - lấy danh sách
     @Transactional(readOnly = true)
     public PageResponse<CourseResponse> getAllCourses(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
 
         Page<Course> coursePage = (keyword != null && !keyword.isBlank())
                 ? courseRepository.findByCourseNameContainingIgnoreCaseAndIsActiveTrue(keyword, pageable)
@@ -146,7 +146,7 @@ public class CourseService {
     // student - xem khóa học của mình
     @Transactional(readOnly = true)
     public PageResponse<CourseResponse> getMyCourses(Long studentId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
         Page<Course> coursePage = courseRepository.findByEnrolledStudentId(studentId, pageable);
 
         List<CourseResponse> list = coursePage.getContent().stream()
@@ -173,7 +173,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public PageResponse<CourseResponse> getCoursesByLecturer(Long lecturerId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
         Page<Course> coursePage = courseRepository.findByLecturer_Id(lecturerId, pageable);
         List<CourseResponse> list = coursePage.getContent().stream()
                 .map(CourseResponse::from).collect(Collectors.toList());

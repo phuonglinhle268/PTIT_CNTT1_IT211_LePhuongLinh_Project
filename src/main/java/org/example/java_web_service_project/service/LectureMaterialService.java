@@ -65,7 +65,7 @@ public class LectureMaterialService {
     //student + lecturer: Xem danh sách tài liệu theo course
     @Transactional(readOnly = true)
     public PageResponse<LectureMaterialResponse> getMaterialsByCourse(Long courseId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("uploadedAt").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("uploadedAt").ascending());
         Page<LectureMaterial> pageData = materialRepository.findByCourse_Id(courseId, pageable);
 
         List<LectureMaterialResponse> list = pageData.getContent().stream()

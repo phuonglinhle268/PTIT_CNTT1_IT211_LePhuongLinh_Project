@@ -41,8 +41,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     return;
                 }
 
+                //Kiểm tra xem token gửi lên có phải là Access Token không
+                if (!jwtUtil.isAccessToken(token)) {
+                    sendUnauthorized(response, "Token này không được phép dùng để xác thực API");
+                    return;
+                }
+
+                //Kiểm tra xem Token có nằm trong blacklist(logout/thu hồi)
                 if (tokenBlacklistRepository.existsByTokenString(token)) {
-                    sendUnauthorized(response, "Token đã bị thu hồi");
+                    sendUnauthorized(response, "Token đã bị thu hồi hoặc đăng xuất");
                     return;
                 }
 
@@ -59,7 +66,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             } catch (Exception e) {
                 log.error("JWT filter error: {}", e.getMessage());
-                sendUnauthorized(response, "Lỗi xác thực token");
+                sendUnauthorized(response, "Lỗi xác thực hệ thống");
                 return;
             }
         }
